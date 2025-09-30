@@ -3,6 +3,5 @@ manifest.mf
 nbproject/build-impl.xml
 nbproject/genfiles.properties
 nbproject/private/
-nbproject/project.properties
 build/
 dist/
