@@ -57,7 +57,7 @@ public class DaoimplementMySQL implements Dao {
     private DaoimplementMySQL() {
         try {
             // Cargar configuración
-            this.configFile = ResourceBundle.getBundle("config.database");
+            this.configFile = ResourceBundle.getBundle("database");
             this.urlDB = this.configFile.getString("Conn");
             this.userBD = this.configFile.getString("DBUser");
             this.passwordDB = this.configFile.getString("DBPass");

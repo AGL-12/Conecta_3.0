@@ -211,7 +211,13 @@ public class ExamenService {
 
         LOGGER.info("Enunciado " + enunciadoId + " asignado exitosamente a convocatoria " + convocatoria);
     }
-
+    public List<UnidadDidactica> obtenerTodasLasUnidadesDidacticas() throws ExamenException {
+        try {
+            return dao.buscarTodasLasUnidadesDidacticas();
+        } catch (DAOException e) {
+            throw new ExamenException("Error al obtener unidades didácticas: " + e.getMessage(), e);
+        }
+    }
     /**
      * Reset de la instancia Singleton (solo para testing)
      */
