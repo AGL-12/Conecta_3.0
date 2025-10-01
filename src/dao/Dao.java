@@ -6,6 +6,7 @@
 package dao;
 
 import excepciones.DAOException;
+import java.time.LocalDate;
 import java.util.List;
 import modelo.ConvocatoriaExamen;
 import modelo.Enunciado;
@@ -278,4 +279,6 @@ public interface Dao {
     default void deshacerTransaccion() throws DAOException {
         // Implementación por defecto vacía
     }
+
+    public void crearConvocatoriaExamen(String convocatoria, String descripcion, LocalDate fecha, String curso);
 }

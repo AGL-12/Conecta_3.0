@@ -6,8 +6,10 @@
 package controlador;
 
 import dao.Dao;
+import dao.DaoImplementsFile;
 import dao.DaoimplementMySQL;
 import excepciones.ExamenException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.ValidationException;
@@ -52,7 +54,6 @@ public class Controlador {
         }
         return instance;
     }
-
 
     public void iniciarAplicacion() {
         System.out.println("📋 Controlador Singleton inicializado: " + this.hashCode());
@@ -143,7 +144,29 @@ public class Controlador {
     }
 
     private void crearConvocatoria() {
-        
+        System.out.println("\n📅 CREAR CONVOCATORIA");
+        System.out.println(Utilidades.repetir("-", 25));
+
+        try {
+            String convocatoria = Utilidades.leerString("📌 Nombre de la convocatoria: ");
+            String descripcion = Utilidades.leerString("📋 Descripción: ");
+
+            System.out.println("📅 Ingrese la fecha (formato: yyyy-mm-dd):");
+            String fechaStr = Utilidades.leerString("Fecha: ");
+            LocalDate fecha = LocalDate.parse(fechaStr);
+
+            String curso = Utilidades.leerString("🎓 Curso: ");
+
+            // Usar el servicio Singleton
+            dao=new DaoImplementsFile();
+            dao.crearConvocatoriaExamen(convocatoria, descripcion, fecha, curso);
+            System.out.println("✅ Convocatoria creada exitosamente!");
+
+        } catch (ExamenException e) {
+            System.err.println("❌ Error al crear convocatoria: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("❌ Error en formato de fecha: " + e.getMessage());
+        }
     }
 
     private void crearEnunciado() throws ExamenException, ValidationException {
@@ -172,7 +195,7 @@ public class Controlador {
                 System.out.println("⚠️ Opción inválida, se seleccionará MEDIA por defecto");
                 nivel = Dificultad.MEDIA;
                 break;
-                
+
         }
         ;
         String ruta = Utilidades.leerString("📁 Ruta del documento (opcional): ");
@@ -221,7 +244,7 @@ public class Controlador {
     }
 
     private void consultarEnunciado() {
-        
+
     }
 
     private void visualizarTextoAsociado() {
