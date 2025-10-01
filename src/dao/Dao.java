@@ -238,14 +238,14 @@ public interface Dao {
      *
      * @return true si hay conexión activa, false en caso contrario
      */
-    boolean isConnected();
+    boolean isConnected()throws DAOException;
 
     /**
      * Obtener estadísticas del DAO (para debugging y monitoreo)
      *
      * @return String con información del estado del DAO
      */
-    default String obtenerEstadisticas() {
+    default String obtenerEstadisticas() throws DAOException{
         return "DAO Singleton - Estado: " + (isConnected() ? "Conectado" : "Desconectado");
     }
 
@@ -278,4 +278,14 @@ public interface Dao {
     default void deshacerTransaccion() throws DAOException {
         // Implementación por defecto vacía
     }
+
+    public void insertarConvocatoria(ConvocatoriaExamen convocatoria)throws DAOException;
+
+    public List<UnidadDidactica> obtenerTodasUnidades()throws DAOException;
+
+    public void asociarEnunciadoUnidad(int id, Integer unidadId)throws DAOException;
+
+    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId)throws DAOException;
+
+    public void asignarEnunciadoConvocatoria(String convocatoria, int enunciadoId)throws DAOException;
 }

@@ -732,4 +732,29 @@ public class DaoimplementMySQL implements Dao {
         }
     }
 
+    @Override
+    public void insertarConvocatoria(ConvocatoriaExamen convocatoria) throws DAOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<UnidadDidactica> obtenerTodasUnidades() throws DAOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void asociarEnunciadoUnidad(int id, Integer unidadId) throws DAOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId) throws DAOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void asignarEnunciadoConvocatoria(String convocatoria, int enunciadoId) throws DAOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }
