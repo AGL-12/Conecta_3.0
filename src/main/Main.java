@@ -7,64 +7,84 @@ package main;
 
 import dao.Dao;
 import dao.DaoimplementMySQL;
+import excepciones.DAOException;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import modelo.ConvocatoriaExamen;
+import modelo.Enunciado;
 import service.ExamenService;
 import utilidades.Utilidades;
+import utilidades.Utilidades.MyObjectOutputStream;
 
 /**
  *
  * @author juanm
  */
 public class Main {
-    
+
     private static Main instance;                     // Única instancia
     private static final Object lock = new Object(); // Para thread-safety
-    
+
     // DEPENDENCIAS - También usando Singleton
     private final Dao dao;
     private final ExamenService examenService;
-    
+
     /**
-     * Constructor privado - CLAVE DEL SINGLETON
-     * No se puede instanciar desde fuera de la clase
+     * Constructor privado - CLAVE DEL SINGLETON No se puede instanciar desde
+     * fuera de la clase
      */
     private Main() {
         // Inicializar dependencias (también pueden ser Singleton)
         this.dao = DaoimplementMySQL.getInstance();
         this.examenService = ExamenService.getInstance();
     }
-     /**
+
+    /**
      * Método para obtener la única instancia
      */
     public static Main getInstance() {
-        if (instance == null) {                    
-            synchronized (lock) {                  
-                if (instance == null) {           
+        if (instance == null) {
+            synchronized (lock) {
+                if (instance == null) {
                     instance = new Main();        // Crear la única instancia
                 }
             }
         }
         return instance;
     }
+
     public static void main(String[] args) {
-         System.out.println("🚀 Iniciando Sistema de Gestión de Exámenes (Singleton Pattern)");
-        
+        System.out.println("🚀 Iniciando Sistema de Gestión de Exámenes (Singleton Pattern)");
+
         // Obtener la única instancia del controlador
         Main controlador = Main.getInstance();
-        
+
         // Iniciar la aplicación
         controlador.iniciarAplicacion();
     }
+
     public void iniciarAplicacion() {
         System.out.println("📋 Controlador Singleton inicializado: " + this.hashCode());
-        
+
         int opcion = 1;
-        
+
         do {
             try {
                 mostrarMenu();
                 opcion = Utilidades.leerInt("🔹 Escoge la opción deseada: ");
-                
-                    switch (opcion) {
+
+                switch (opcion) {
                     case 1:
                         crearUnidadDidactica();
                         break;
@@ -96,14 +116,14 @@ public class Main {
                         System.out.println("❌ Opción inválida. Seleccione una opción válida.");
                         break;
                 }
-                
+
             } catch (Exception e) {
                 System.err.println("💥 Error: " + e.getMessage());
                 System.out.println("Presione Enter para continuar...");
             }
-            
+
         } while (opcion != 0);
-        
+
         cerrarRecursos();
     }
 
@@ -123,40 +143,200 @@ public class Main {
         System.out.println(Utilidades.repetir("=", 50));
     }
 
-
     private void crearUnidadDidactica() {
 
     }
 
     private void crearConvocatoria() {
-
     }
 
     private void crearEnunciado() {
 
     }
 
-    private void consultarConvocatoria() {
-
+    private void consultarEnunciado() {
+        int id;
+        List<Enunciado> enunciados;
+        id = Utilidades.leerInt("Introduce el id del enunciado");
+        try {
+            enunciados = dao.buscarEnunciadosPorUnidadDidactica(id);
+            System.out.println(enunciados);
+        } catch (DAOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    private void consultarEnunciado() {
+    private void consultarConvocatoria() {
+        File fichero = new File("src/data/convocatorias.dat");
 
+        if (!fichero.exists()) {
+            System.out.println("El fichero de convocatorias no existe.");
+            return;
+        }
+
+        int idBuscado = Utilidades.leerInt("Introduce el ID del enunciado a buscar");
+        ObjectInputStream ois = null;
+
+        try {
+            ois = new ObjectInputStream(new FileInputStream(fichero));
+            boolean encontrado = false;
+
+            while (true) {
+                try {
+                    ConvocatoriaExamen c = (ConvocatoriaExamen) ois.readObject();
+
+                    for (Enunciado e : c.getEnunciados()) {
+                        if (e.getId() == idBuscado) {
+                            System.out.println("Convocatoria: " + c.getConvocatoria());
+                            System.out.println("Descripción: " + c.getDescripcion());
+                            System.out.println("Fecha: " + c.getFecha());
+                            System.out.println("Curso: " + c.getCurso());
+                            System.out.println("-------------------------------");
+                            encontrado = true;
+                        }
+                    }
+
+                } catch (IOException eof) {
+                    break;
+                }
+            }
+
+            if (!encontrado) {
+                System.out.println("No se encontraron convocatorias con ese enunciado.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error al leer el fichero.");
+        } finally {
+            try {
+                if (ois != null) {
+                    ois.close();
+                }
+            } catch (IOException e) {
+                /* ignorar */
+            }
+        }
     }
 
     private void visualizarTextoAsociado() {
+        int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar");
 
+        try {
+            // Obtener el enunciado desde la base de datos
+            Enunciado enunciado = dao.buscarEnunciadoPorId(id);
+
+            if (enunciado == null) {
+                System.out.println("No se encontró ningún enunciado con ese ID.");
+                return;
+            }
+
+            String rutaArchivo = enunciado.getRuta();
+            File archivo = new File(rutaArchivo);
+
+            if (!archivo.exists()) {
+                System.out.println("El archivo de texto asociado no existe: " + rutaArchivo);
+                return;
+            }
+
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(archivo));
+                String contenido = (String) ois.readObject();
+                System.out.println("Contenido del enunciado ID " + id + ":");
+                System.out.println("------------------------------------------------");
+                System.out.println(contenido);
+                System.out.println("------------------------------------------------");
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println("Error al leer el archivo del enunciado: " + e.getMessage());
+            } finally {
+                if (ois != null) {
+                    try {
+                        ois.close();
+                    } catch (IOException e) {
+                        /* ignorar */
+                    }
+                }
+            }
+
+        } catch (DAOException e) {
+            System.out.println("Error al buscar el enunciado: " + e.getMessage());
+        }
     }
 
     private void asignarEnunciado() {
 
+        ObjectInputStream ois = null;
+        ObjectOutputStream oos = null;
+
+        String nombre;
+        int id;
+        File fichero = new File("src/data/convocatorias.dat");
+        List<ConvocatoriaExamen> convocatorias = new ArrayList<>();
+        ConvocatoriaExamen encontrada = null;
+
+        nombre = Utilidades.introducirCadena("Introduce el nombre de la convocatoria");
+        id = Utilidades.leerInt("Introduce el id que quieras añadir");
+
+        try {
+            ois = new ObjectInputStream(new FileInputStream(fichero));
+            convocatorias = (List<ConvocatoriaExamen>) ois.readObject();
+            try {
+                for (ConvocatoriaExamen c : convocatorias) {
+                    if (c.getConvocatoria().equalsIgnoreCase(nombre)) {
+                        encontrada = c;
+                        break;
+                    }
+                }
+                if (encontrada == null) {
+                    System.out.println("No se encontró la convocatoria: " + nombre);
+                    return;
+                }
+                Enunciado enunciado = dao.buscarEnunciadoPorId(id);
+                if (enunciado == null) {
+                    System.out.println("No se encontró el enunciado con ID: " + id);
+                    return;
+                }
+                if (!encontrada.getEnunciados().contains(enunciado)) {
+                    encontrada.getEnunciados().add(enunciado);
+                    System.out.println("Enunciado asignado correctamente a la convocatoria.");
+                } else {
+                    System.out.println("El enunciado ya estaba asignado a esta convocatoria.");
+                }
+                oos = new ObjectOutputStream(new FileOutputStream(fichero));
+                oos.writeObject(convocatorias);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (DAOException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (ois != null) {
+                    ois.close();
+                }
+                if (oos != null) {
+                    oos.close();
+                }
+            } catch (IOException ignored) {
+            }
+        }
+
     }
-    
+
     /**
      * Método para demostrar el patrón Singleton
      */
     private void mostrarEstadoSingleton() {
-        System.out.println("\n🔧 DEMOSTRACIÓN PATRÓN SINGLETON");
+        /*System.out.println("\n🔧 DEMOSTRACIÓN PATRÓN SINGLETON");
         System.out.println(Utilidades.repetir("-", 35));
 
         // Obtener otra "instancia" (será la misma)
@@ -164,10 +344,50 @@ public class Main {
         System.out.println("📊 Hash de esta instancia: " + this.hashCode());
         System.out.println("📊 Hash de 'otra' instancia: " + otraInstancia.hashCode());
         System.out.println("🔍 ¿Son la misma instancia? " + (this == otraInstancia ? "✅ SÍ" : "❌ NO"));
-        System.out.println("💡 Esto demuestra que Singleton garantiza UNA SOLA INSTANCIA");
+        System.out.println("💡 Esto demuestra que Singleton garantiza UNA SOLA INSTANCIA");*/
+        File fichero = new File("src/data/convocatorias.dat");
+
+        try {
+            // 1️⃣ Pedimos datos de la convocatoria
+            String convocatoria = Utilidades.introducirCadena("Introduce el nombre de la convocatoria");
+            String descripcion = Utilidades.introducirCadena("Introduce la descripción de la convocatoria");
+            LocalDate fecha = LocalDate.parse(Utilidades.introducirCadena("Introduce la fecha (YYYY-MM-DD)"));
+            String curso = Utilidades.introducirCadena("Introduce el curso");
+
+            // 2️⃣ Pedimos IDs de enunciados
+            int idEnunciado1 = Integer.parseInt(Utilidades.introducirCadena("Introduce el ID del primer enunciado"));
+            int idEnunciado2 = Integer.parseInt(Utilidades.introducirCadena("Introduce el ID del segundo enunciado"));
+
+            // 3️⃣ Obtenemos los enunciados desde la BD
+            Enunciado e1 = dao.buscarEnunciadoPorId(idEnunciado1);
+            Enunciado e2 = dao.buscarEnunciadoPorId(idEnunciado2);
+
+            if (e1 == null || e2 == null) {
+                System.out.println("No se encontraron uno o ambos enunciados.");
+                return;
+            }
+
+            // 4️⃣ Creamos lista de enunciados
+            List<Enunciado> enunciados = new ArrayList<>();
+            enunciados.add(e1);
+            enunciados.add(e2);
+
+            // 5️⃣ Creamos la convocatoria
+            ConvocatoriaExamen c = new ConvocatoriaExamen(convocatoria, descripcion, fecha, curso);
+            c.setEnunciados(enunciados);
+
+            // 6️⃣ Guardamos la convocatoria en el fichero
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fichero))) {
+                oos.writeObject(c);
+                System.out.println("Convocatoria guardada correctamente con 2 enunciados.");
+            }
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (DAOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
-
-
 
     /**
      * Limpieza de recursos al cerrar la aplicación
@@ -188,9 +408,9 @@ public class Main {
         return dao;
 
     }
-    
+
     public ExamenService getExamenService() {
         return examenService;
     }
-    
+
 }

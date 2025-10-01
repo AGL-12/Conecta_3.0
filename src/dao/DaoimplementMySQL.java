@@ -34,6 +34,7 @@ import modelo.UnidadDidactica;
  * @author Alexander
  */
 public class DaoimplementMySQL implements Dao {
+
     private static final Logger LOGGER = Logger.getLogger(DaoimplementMySQL.class.getName());
     // SINGLETON PATTERN
     private static DaoimplementMySQL instance;
@@ -430,9 +431,7 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int unidadDidacticaId) throws DAOException {
-        String sql = "SELECT e.* FROM Enunciado e "
-                + "INNER JOIN EnunciadoUnidadDidactica eud ON e.id = eud.enunciado_id "
-                + "WHERE eud.unidad_didactica_id = ? ORDER BY e.id";
+        String sql = "SELECT * FROM enunciado WHERE id IN (SELECT ide FROM unienu WHERE idu = ?);";
 
         List<Enunciado> enunciados = new ArrayList<Enunciado>();
 
@@ -700,7 +699,7 @@ public class DaoimplementMySQL implements Dao {
         Enunciado enunciado = new Enunciado();
         enunciado.setId(rs.getInt("id"));
         enunciado.setDescripcion(rs.getString("descripcion"));
-        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel_dificultad")));
+        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel")));
         enunciado.setDisponible(rs.getBoolean("disponible"));
         enunciado.setRuta(rs.getString("ruta"));
         return enunciado;

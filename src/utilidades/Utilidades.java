@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -405,4 +407,22 @@ public class Utilidades {
         return new String(array);
     }
 
+    public class MyObjectOutputStream extends ObjectOutputStream {
+
+        // Sobrescribimos el método que crea la cabecera
+        @Override
+        protected void writeStreamHeader() throws IOException {
+            // No hacer nada.
+            reset();
+        }
+
+        // Constructores
+        public MyObjectOutputStream() throws IOException {
+            super();
+        }
+
+        public MyObjectOutputStream(OutputStream out) throws IOException {
+            super(out);
+        }
+    }
 }
