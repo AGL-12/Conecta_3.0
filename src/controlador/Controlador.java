@@ -26,7 +26,6 @@ public class Controlador {
 
     // SINGLETON
     private static Controlador instance;
-    private static final Object lock = new Object();
 
     // DAOs
     private final Dao daoDB;      // Para MySQL (UnidadDidactica, Enunciado)
@@ -47,11 +46,7 @@ public class Controlador {
      */
     public static Controlador getInstance() {
         if (instance == null) {
-            synchronized (lock) {
-                if (instance == null) {
-                    instance = new Controlador();
-                }
-            }
+            instance = new Controlador();
         }
         return instance;
     }
@@ -74,9 +69,9 @@ public class Controlador {
             List<ConvocatoriaExamen> precarga = new ArrayList<ConvocatoriaExamen>();
             //enunciado
             // Precarga de ejemplo
-            precarga.add(new ConvocatoriaExamen(1, "Ordinaria_2024", "Primera convocatoria ordinaria",
+            precarga.add(new ConvocatoriaExamen(101, "Ordinaria_2024", "Primera convocatoria ordinaria",
                     LocalDate.of(2024, 6, 15), "2023/2024"));
-            precarga.add(new ConvocatoriaExamen(2, "Extraordinaria_2024", "Convocatoria extraordinaria",
+            precarga.add(new ConvocatoriaExamen(102, "Extraordinaria_2024", "Convocatoria extraordinaria",
                     LocalDate.of(2024, 9, 10), "2023/2024"));
 
             guardarConvocatorias(precarga);
@@ -343,7 +338,8 @@ public class Controlador {
         } else {
             for (int i = 0; i < convocatorias.size(); i++) {
                 ConvocatoriaExamen c = convocatorias.get(i);
-                System.out.println((i + 1) + ". " + convocatorias.get(i));
+                //System.out.println((i + 1) + ". " + convocatorias.get(i));
+                System.out.println((i + 1) + ". " + convocatorias.get(i).getConvocatoria());
             }
         }
     }

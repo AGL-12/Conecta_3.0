@@ -105,7 +105,7 @@ public class DaoimplementMySQL implements Dao {
     // =================== UNIDAD DIDÁCTICA ===================
     @Override
     public void insertarUnidadDidactica(UnidadDidactica unidad) throws DAOException {
-        String sql = "INSERT INTO UnidadDidactica (acronimo, titulo, evaluacion, descripcion) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO unidadDidactica (acronimo, titulo, evaluacion, descripcion) VALUES (?, ?, ?, ?)";
 
         try {
             openConnection();
@@ -140,7 +140,7 @@ public class DaoimplementMySQL implements Dao {
     // =================== ENUNCIADO ===================
     @Override
     public void crearUniEnu(int id, int id0) throws DAOException {
-        String sql = "INSERT INTO enunciadounidaddidactica (unidad_didactica_id, enunciado_id) VALUES (?, ?)";
+        String sql = "INSERT INTO uniEnu (id_uni, id_enu) VALUES (?, ?)";
         try {
             openConnection();
             stmt = con.prepareStatement(sql);
@@ -153,7 +153,7 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public void crearEnunciado(Enunciado enu) throws DAOException {
-        String sql = "INSERT INTO Enunciado (descripcion, nivel_dificultad, disponible, ruta) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO enunciado (descripcion, nivel, disponible, ruta) VALUES (?, ?, ?, ?)";
 
         try {
             openConnection();
@@ -191,10 +191,7 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int unidadDidacticaId) throws DAOException {
-        String sql = "SELECT e.* \n"
-                + "FROM Enunciado e\n"
-                + "JOIN EnunciadoUnidadDidactica eu ON e.id = eu.enunciado_id\n"
-                + "WHERE eu.unidad_didactica_id = ?";
+        String sql = "SELECT e.*FROM enunciado e JOIN uniEnu ue ON e.id = ue.id_enu WHERE ue.id_uni = ?";
 
         List<Enunciado> enunciados = new ArrayList<Enunciado>();
 
@@ -232,7 +229,7 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public Enunciado buscarEnunciadoPorId(int id) throws DAOException {
-        String sql = "SELECT * FROM Enunciado WHERE id = ?";
+        String sql = "SELECT * FROM enunciado WHERE id = ?";
 
         try {
             openConnection();
