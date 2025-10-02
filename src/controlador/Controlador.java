@@ -357,7 +357,7 @@ public class Controlador {
     }
 
     private void visualizarTextoAsociado() {
-        int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar");
+        int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar: ");
 
         try {
             Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
