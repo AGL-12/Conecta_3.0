@@ -221,7 +221,7 @@ public class DaoimplementMySQL implements Dao {
         Enunciado enunciado = new Enunciado();
         enunciado.setId(rs.getInt("id"));
         enunciado.setDescripcion(rs.getString("descripcion"));
-        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel_dificultad")));
+        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel")));
         enunciado.setDisponible(rs.getBoolean("disponible"));
         enunciado.setRuta(rs.getString("ruta"));
         return enunciado;

@@ -349,7 +349,7 @@ public class Controlador {
 
         try {
             Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
-
+            System.out.println(enunciado.getRuta());
             if (enunciado == null) {
                 System.out.println("❌ No se encontró ningún enunciado con ese ID.");
                 return;
