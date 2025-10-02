@@ -82,14 +82,9 @@ public class DaoimplementMySQL implements Dao {
     // =================== GESTIÓN DE CONEXIONES ===================
     private void openConnection() throws SQLException {
         try {
-            if (con == null || con.isClosed()) {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                String connectionUrl = urlDB;
-                con = DriverManager.getConnection(connectionUrl, userBD, passwordDB);
-                LOGGER.fine("Conexión establecida");
-            }
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Driver MySQL no encontrado", e);
+            con = DriverManager.getConnection(urlDB, this.userBD, passwordDB);
+        } catch (SQLException e) {
+            //no se conecta
         }
     }
 

@@ -244,7 +244,7 @@ public class Controlador {
                     break;
             }
 
-            String ruta = Utilidades.leerString("Ruta documento");
+            String ruta = Utilidades.leerString("Ruta documento: ");
             if (ruta.trim().isEmpty()) {
                 ruta = null;
             }
@@ -256,10 +256,8 @@ public class Controlador {
             // Asociar con unidades
             List<UnidadDidactica> uni = daoDB.mostrarUnidades();
             System.out.println("\n📚 Unidades Didácticas disponibles:");
-            for (UnidadDidactica u : uni) {
-                System.out.println("ID: " + u.getId() + " Nombre:" + u.getTitulo());
-            }
-            int id = Utilidades.leerInt("Introduce el id de la unidad didactica: ");
+
+            int id = selectIdUnidadDidactica(uni);
             int ultimoId = daoDB.ultimoIdEnu();
             daoDB.crearUniEnu(id, ultimoId);
             // asociar enunciado a convocatoria
@@ -284,10 +282,11 @@ public class Controlador {
     private void consultarEnunciadosPorUnidad() {
         System.out.println("\n--- CONSULTAR ENUNCIADOS POR UNIDAD ---");
         List<Enunciado> enunciados;
-        try {
-            int unidadId = Utilidades.leerInt("ID de la unidad: ");
 
-            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(unidadId);
+        try {
+            List<UnidadDidactica> uni = daoDB.mostrarUnidades();
+            int unidadId = selectIdUnidadDidactica(uni);
+            enunciados = daoDB.buscarEnunciadosPorUnidad(unidadId);
             if (enunciados != null) {
                 for (Enunciado e : enunciados) {
                     System.out.println("ID: " + e.getId());
@@ -500,6 +499,32 @@ public class Controlador {
         if (!encontrada) {
             System.out.println("⚠️ No hay convocatorias asociadas al enunciado con ID " + id);
         }
+    }
+
+    private int selectIdUnidadDidactica(List<UnidadDidactica> uni) {
+        int id;
+        for (UnidadDidactica u : uni) {
+            System.out.println("ID: " + u.getId() + " Nombre:" + u.getTitulo());
+        }
+        // Pedir id válido
+        while (true) {
+            id = Utilidades.leerInt("Introduce el id de la unidad didactica: ");
+
+            boolean valido = false;
+            for (UnidadDidactica u : uni) {
+                if (u.getId() == id) {
+                    valido = true;
+                    break;
+                }
+            }
+
+            if (valido) {
+                break; // id correcto
+            } else {
+                System.out.println("❌ ID no válido. Intenta de nuevo.");
+            }
+        }
+        return id;
     }
 
 }
