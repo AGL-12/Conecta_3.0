@@ -289,7 +289,9 @@ public class Controlador {
             int unidadId = Utilidades.leerInt("ID de la unidad: ");
 
             enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(unidadId);
-            System.out.println(enunciados);
+            for (Enunciado e : enunciados) {
+                System.out.println(e);
+            }
 
         } catch (DAOException e) {
             System.err.println("Error: " + e.getMessage());
@@ -399,7 +401,8 @@ public class Controlador {
         File fichero = new File("src/data/convocatorias.dat");
         List<ConvocatoriaExamen> convocatorias = new ArrayList<>();
         ConvocatoriaExamen encontrada = null;
-
+        
+        mostrarTodasConvocatorias();
         nombre = Utilidades.introducirCadena("Introduce el nombre de la convocatoria");
         id = Utilidades.leerInt("Introduce el id que quieras añadir");
 

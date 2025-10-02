@@ -49,7 +49,7 @@ public class Utilidades {
                 String input = scanner.nextLine().trim();
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
-                System.out.println("⚠️ Por favor, ingrese un número válido.");
+                //System.out.println("⚠️ Por favor, ingrese un número válido.");
             } catch (NoSuchElementException e) {
                 System.out.println("❌ Error al leer datos");
                 return 0;
