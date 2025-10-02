@@ -284,13 +284,21 @@ public class Controlador {
     private void consultarEnunciadosPorUnidad() {
         System.out.println("\n--- CONSULTAR ENUNCIADOS POR UNIDAD ---");
         List<Enunciado> enunciados;
-        int id = Utilidades.leerInt("Introduce el id del enunciado");
         try {
             int unidadId = Utilidades.leerInt("ID de la unidad: ");
 
             enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(unidadId);
-            for (Enunciado e : enunciados) {
-                System.out.println(e);
+            if (enunciados != null) {
+                for (Enunciado e : enunciados) {
+                    System.out.println("ID: " + e.getId());
+                    System.out.println("Descripción: " + e.getDescripcion());
+                    System.out.println("Nivel: " + e.getNivel());
+                    System.out.println("Disponible: " + (e.isDisponible() ? "Sí" : "No"));
+                    System.out.println("Ruta: " + e.getRuta());
+                    System.out.println("----------------------------");
+                }
+            } else {
+                System.out.println("No hay enunciado asignados a la convocatoria: " + unidadId);
             }
 
         } catch (DAOException e) {
@@ -351,7 +359,6 @@ public class Controlador {
 
         try {
             Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
-            System.out.println(enunciado.getRuta());
             if (enunciado == null) {
                 System.out.println("❌ No se encontró ningún enunciado con ese ID.");
                 return;
@@ -397,51 +404,71 @@ public class Controlador {
         ObjectOutputStream oos = null;
 
         String nombre;
-        int id;
-        File fichero = new File("src/data/convocatorias.dat");
+        int id = 0;
+        File fichero = new File(ARCHIVO_CONVOCATORIAS);
         List<ConvocatoriaExamen> convocatorias = new ArrayList<>();
+        List<Enunciado> listaEnunciados;
         ConvocatoriaExamen encontrada = null;
-        
+        ConvocatoriaExamen busca = null;
+
         mostrarTodasConvocatorias();
-        nombre = Utilidades.introducirCadena("Introduce el nombre de la convocatoria");
-        id = Utilidades.leerInt("Introduce el id que quieras añadir");
+        do {
+            nombre = Utilidades.introducirCadena("Introduce el nombre de la convocatoria: ");
+            encontrada = buscarConvocatoriaPorNombre(nombre);
+            if (encontrada == null) {
+                System.out.println("⚠️ Convocatoria no encontrada, inténtelo de nuevo.");
+            }
+        } while (encontrada == null);
+        try {
+            listaEnunciados = daoDB.mostrarEnunciados();
+            System.out.println("\n--- TODAS LOS ENUNCIADOS ---");
+            for (Enunciado e : listaEnunciados) {
+                System.out.println("ID: " + e.getId());
+                System.out.println("Descripción: " + e.getDescripcion());
+                System.out.println("Nivel: " + e.getNivel());
+                System.out.println("Disponible: " + (e.isDisponible() ? "Sí" : "No"));
+                System.out.println("Ruta: " + e.getRuta());
+                System.out.println("----------------------------");
+            }
+            boolean idValido;
+
+            do {
+                id = Utilidades.leerInt("Introduce el id del enunciado que quieras añadir: ");
+                idValido = false;
+
+                // Comprobar si el id existe en la lista
+                for (Enunciado enu : listaEnunciados) {
+                    if (enu.getId() == id) {
+                        idValido = true;
+                        break;
+                    }
+                }
+
+                if (!idValido) {
+                    System.out.println("⚠️ Id inválido, inténtelo de nuevo.");
+                }
+
+            } while (!idValido);
+        } catch (DAOException ex) {
+            ex.printStackTrace();
+        }
 
         try {
             ois = new ObjectInputStream(new FileInputStream(fichero));
             convocatorias = (List<ConvocatoriaExamen>) ois.readObject();
-            try {
-                for (ConvocatoriaExamen c : convocatorias) {
-                    if (c.getConvocatoria().equalsIgnoreCase(nombre)) {
-                        encontrada = c;
-                        break;
-                    }
+            for (ConvocatoriaExamen c : convocatorias) {
+                if (c.getConvocatoria().equalsIgnoreCase(encontrada.getConvocatoria())) {
+                    c.setIdEnunciado(id);
+                    break;
                 }
-                if (encontrada == null) {
-                    System.out.println("No se encontró la convocatoria: " + nombre);
-                    return;
-                }
-                Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
-                if (enunciado == null) {
-                    System.out.println("No se encontró el enunciado con ID: " + id);
-                    return;
-                } else {
-                    encontrada.setIdEnunciado(id);
-                }
-
-                oos = new ObjectOutputStream(new FileOutputStream(fichero));
-                oos.writeObject(convocatorias);
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (DAOException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
             }
+
+            oos = new ObjectOutputStream(new FileOutputStream(fichero));
+            oos.writeObject(convocatorias);
+            System.out.println("Se ha introducido el enunciado exitosamente");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {

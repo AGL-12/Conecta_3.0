@@ -33,4 +33,5 @@ public interface Dao {
 
     public int ultimoIdEnu()throws DAOException;
 
+    public List<Enunciado> mostrarEnunciados() throws DAOException;
 }

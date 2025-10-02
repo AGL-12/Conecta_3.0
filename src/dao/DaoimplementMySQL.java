@@ -311,4 +311,29 @@ public class DaoimplementMySQL implements Dao {
         return unidad;
     }
 
+    @Override
+    public List<Enunciado> mostrarEnunciados() throws DAOException {
+        String sql = "SELECT * FROM enunciado;";
+        List<Enunciado> enuciados = new ArrayList<>();
+        try {
+            openConnection();
+            stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                enuciados.add(mapearEnunciado(rs));
+            }
+        } catch (SQLException e) {
+            throw new DAOException("Error al buscar enunciados por unidad didáctica: " + e.getMessage(), e);
+        } finally {
+            try {
+                closeConnection();
+            } catch (SQLException e) {
+            }
+        }
+
+        return enuciados;
+
+    }
+
 }
