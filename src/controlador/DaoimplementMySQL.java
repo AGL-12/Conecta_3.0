@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -24,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
-import modelo.ConvocatoriaExamen;
 import modelo.Dificultad;
 import modelo.Enunciado;
 import modelo.UnidadDidactica;
@@ -48,9 +48,6 @@ public class DaoimplementMySQL implements Dao {
     private String urlDB;
     private String userBD;
     private String passwordDB;
-
-    // ARCHIVO PARA CONVOCATORIAS
-    private static final String ARCHIVO_CONVOCATORIAS = "././resorces/convocatorias.dat";
 
     /**
      * Constructor privado - SINGLETON
@@ -113,20 +110,6 @@ public class DaoimplementMySQL implements Dao {
         }
     }
 
-    public Connection getConnection() throws SQLException {
-        openConnection();
-        return con;
-    }
-
-    @Override
-    public boolean isConnected() {
-        try {
-            return con != null && !con.isClosed() && con.isValid(5);
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
     // =================== UNIDAD DIDÁCTICA ===================
     @Override
     public void insertarUnidadDidactica(UnidadDidactica unidad) throws DAOException {
@@ -162,148 +145,32 @@ public class DaoimplementMySQL implements Dao {
         }
     }
 
-    @Override
-    public void actualizarUnidadDidactica(UnidadDidactica unidad) throws DAOException {
-        String sql = "UPDATE UnidadDidactica SET acronimo = ?, titulo = ?, evaluacion = ?, descripcion = ? WHERE id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-
-            stmt.setString(1, unidad.getAcronimo());
-            stmt.setString(2, unidad.getTitulo());
-            stmt.setString(3, unidad.getEvaluacion());
-            stmt.setString(4, unidad.getDescripcion());
-            stmt.setInt(5, unidad.getId());
-
-            int filasAfectadas = stmt.executeUpdate();
-            if (filasAfectadas == 0) {
-                throw new DAOException("No se encontró la unidad didáctica con ID: " + unidad.getId());
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al actualizar unidad didáctica: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public void eliminarUnidadDidactica(int id) throws DAOException {
-        String sql = "DELETE FROM UnidadDidactica WHERE id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, id);
-
-            int filasAfectadas = stmt.executeUpdate();
-            if (filasAfectadas == 0) {
-                throw new DAOException("No se encontró la unidad didáctica con ID: " + id);
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al eliminar unidad didáctica: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public UnidadDidactica buscarUnidadDidacticaPorId(int id) throws DAOException {
-        String sql = "SELECT * FROM UnidadDidactica WHERE id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, id);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapearUnidadDidactica(rs);
-            }
-            return null;
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al buscar unidad didáctica por ID: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public UnidadDidactica buscarUnidadDidacticaPorAcronimo(String acronimo) throws DAOException {
-        String sql = "SELECT * FROM UnidadDidactica WHERE acronimo = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setString(1, acronimo);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapearUnidadDidactica(rs);
-            }
-            return null;
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al buscar unidad didáctica por acrónimo: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public List<UnidadDidactica> buscarTodasLasUnidadesDidacticas() throws DAOException {
-        String sql = "SELECT * FROM UnidadDidactica ORDER BY acronimo";
-        List<UnidadDidactica> unidades = new ArrayList<UnidadDidactica>();
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                unidades.add(mapearUnidadDidactica(rs));
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al buscar todas las unidades didácticas: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-
-        return unidades;
-    }
-
     // =================== ENUNCIADO ===================
     @Override
-    public void insertarEnunciado(Enunciado enunciado) throws DAOException {
+    public void crearUniEnu(int id, int id0) throws DAOException {
+        String sql = "insert into enunciadounidaddidactica values (?, ?)";
+        try {
+            openConnection();
+            stmt = con.prepareStatement(sql);
+            stmt.setInt(1, id);
+            stmt.setInt(2, id0);
+
+        } catch (Exception e) {
+        }
+    }
+
+    @Override
+    public void crearEnunciado(Enunciado enu) throws DAOException {
         String sql = "INSERT INTO Enunciado (descripcion, nivel_dificultad, disponible, ruta) VALUES (?, ?, ?, ?)";
 
         try {
             openConnection();
             stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
-            stmt.setString(1, enunciado.getDescripcion());
-            stmt.setString(2, enunciado.getNivel().name());
-            stmt.setBoolean(3, enunciado.isDisponible());
-            stmt.setString(4, enunciado.getRuta());
+            stmt.setString(1, enu.getDescripcion());
+            stmt.setString(2, enu.getNivel().name());
+            stmt.setBoolean(3, enu.isDisponible());
+            stmt.setString(4, enu.getRuta());
 
             int filasAfectadas = stmt.executeUpdate();
             if (filasAfectadas == 0) {
@@ -312,7 +179,7 @@ public class DaoimplementMySQL implements Dao {
 
             ResultSet generatedKeys = stmt.getGeneratedKeys();
             if (generatedKeys.next()) {
-                enunciado.setId(generatedKeys.getInt(1));
+                enu.setId(generatedKeys.getInt(1));
             }
 
         } catch (SQLException e) {
@@ -326,107 +193,8 @@ public class DaoimplementMySQL implements Dao {
     }
 
     @Override
-    public void actualizarEnunciado(Enunciado enunciado) throws DAOException {
-        String sql = "UPDATE Enunciado SET descripcion = ?, nivel_dificultad = ?, disponible = ?, ruta = ? WHERE id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-
-            stmt.setString(1, enunciado.getDescripcion());
-            stmt.setString(2, enunciado.getNivel().name());
-            stmt.setBoolean(3, enunciado.isDisponible());
-            stmt.setString(4, enunciado.getRuta());
-            stmt.setInt(5, enunciado.getId());
-
-            int filasAfectadas = stmt.executeUpdate();
-            if (filasAfectadas == 0) {
-                throw new DAOException("No se encontró el enunciado con ID: " + enunciado.getId());
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al actualizar enunciado: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public void eliminarEnunciado(int id) throws DAOException {
-        String sql = "DELETE FROM Enunciado WHERE id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, id);
-
-            int filasAfectadas = stmt.executeUpdate();
-            if (filasAfectadas == 0) {
-                throw new DAOException("No se encontró el enunciado con ID: " + id);
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al eliminar enunciado: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public Enunciado buscarEnunciadoPorId(int id) throws DAOException {
-        String sql = "SELECT * FROM Enunciado WHERE id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, id);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapearEnunciado(rs);
-            }
-            return null;
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al buscar enunciado por ID: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public List<Enunciado> buscarTodosLosEnunciados() throws DAOException {
-        String sql = "SELECT * FROM Enunciado ORDER BY id";
-        List<Enunciado> enunciados = new ArrayList<Enunciado>();
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                enunciados.add(mapearEnunciado(rs));
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al buscar todos los enunciados: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-
-        return enunciados;
+    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId) throws DAOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -457,244 +225,6 @@ public class DaoimplementMySQL implements Dao {
         return enunciados;
     }
 
-    @Override
-    public void asociarEnunciadoConUnidadDidactica(int enunciadoId, int unidadDidacticaId) throws DAOException {
-        String sql = "INSERT IGNORE INTO EnunciadoUnidadDidactica (enunciado_id, unidad_didactica_id) VALUES (?, ?)";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, enunciadoId);
-            stmt.setInt(2, unidadDidacticaId);
-
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al asociar enunciado con unidad didáctica: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public void desasociarEnunciadoDeUnidadDidactica(int enunciadoId, int unidadDidacticaId) throws DAOException {
-        String sql = "DELETE FROM EnunciadoUnidadDidactica WHERE enunciado_id = ? AND unidad_didactica_id = ?";
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, enunciadoId);
-            stmt.setInt(2, unidadDidacticaId);
-
-            stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al desasociar enunciado de unidad didáctica: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-    }
-
-    @Override
-    public List<UnidadDidactica> buscarUnidadesDidacticasPorEnunciado(int enunciadoId) throws DAOException {
-        String sql = "SELECT ud.* FROM UnidadDidactica ud "
-                + "INNER JOIN EnunciadoUnidadDidactica eud ON ud.id = eud.unidad_didactica_id "
-                + "WHERE eud.enunciado_id = ? ORDER BY ud.acronimo";
-
-        List<UnidadDidactica> unidades = new ArrayList<UnidadDidactica>();
-
-        try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, enunciadoId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                unidades.add(mapearUnidadDidactica(rs));
-            }
-
-        } catch (SQLException e) {
-            throw new DAOException("Error al buscar unidades didácticas por enunciado: " + e.getMessage(), e);
-        } finally {
-            try {
-                closeConnection();
-            } catch (SQLException e) {
-                /* ignorar */ }
-        }
-
-        return unidades;
-    }
-
-    // =================== CONVOCATORIA EXAMEN (ARCHIVO) ===================
-    @Override
-    public void insertarConvocatoriaExamen(ConvocatoriaExamen convocatoria) throws DAOException {
-        List<ConvocatoriaExamen> convocatorias = buscarTodasLasConvocatorias();
-
-        // Verificar si ya existe
-        for (ConvocatoriaExamen c : convocatorias) {
-            if (c.getConvocatoria().equals(convocatoria.getConvocatoria())) {
-                throw new DAOException("Ya existe una convocatoria con el nombre: " + convocatoria.getConvocatoria());
-            }
-        }
-
-        convocatorias.add(convocatoria);
-        guardarTodasLasConvocatorias(convocatorias);
-    }
-
-    @Override
-    public void actualizarConvocatoriaExamen(ConvocatoriaExamen convocatoria) throws DAOException {
-        List<ConvocatoriaExamen> convocatorias = buscarTodasLasConvocatorias();
-        boolean encontrada = false;
-
-        for (int i = 0; i < convocatorias.size(); i++) {
-            if (convocatorias.get(i).getConvocatoria().equals(convocatoria.getConvocatoria())) {
-                convocatorias.set(i, convocatoria);
-                encontrada = true;
-                break;
-            }
-        }
-
-        if (!encontrada) {
-            throw new DAOException("No se encontró la convocatoria: " + convocatoria.getConvocatoria());
-        }
-
-        guardarTodasLasConvocatorias(convocatorias);
-    }
-
-    @Override
-    public void eliminarConvocatoriaExamen(String convocatoria) throws DAOException {
-        List<ConvocatoriaExamen> convocatorias = buscarTodasLasConvocatorias();
-        boolean eliminada = false;
-
-        for (int i = 0; i < convocatorias.size(); i++) {
-            if (convocatorias.get(i).getConvocatoria().equals(convocatoria)) {
-                convocatorias.remove(i);
-                eliminada = true;
-                break;
-            }
-        }
-
-        if (!eliminada) {
-            throw new DAOException("No se encontró la convocatoria: " + convocatoria);
-        }
-
-        guardarTodasLasConvocatorias(convocatorias);
-    }
-
-    @Override
-    public ConvocatoriaExamen buscarConvocatoriaPorNombre(String convocatoria) throws DAOException {
-        List<ConvocatoriaExamen> convocatorias = buscarTodasLasConvocatorias();
-        for (ConvocatoriaExamen c : convocatorias) {
-            if (c.getConvocatoria().equals(convocatoria)) {
-                return c;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public List<ConvocatoriaExamen> buscarTodasLasConvocatorias() throws DAOException {
-        File archivo = new File(ARCHIVO_CONVOCATORIAS);
-        if (!archivo.exists()) {
-            return new ArrayList<ConvocatoriaExamen>();
-        }
-
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(archivo))) {
-            @SuppressWarnings("unchecked")
-            List<ConvocatoriaExamen> convocatorias = (List<ConvocatoriaExamen>) ois.readObject();
-            return convocatorias;
-        } catch (IOException | ClassNotFoundException e) {
-            throw new DAOException("Error al leer archivo de convocatorias: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void asignarEnunciadoAConvocatoria(String convocatoria, int enunciadoId) throws DAOException {
-        ConvocatoriaExamen conv = buscarConvocatoriaPorNombre(convocatoria);
-        if (conv == null) {
-            throw new DAOException("No se encontró la convocatoria: " + convocatoria);
-        }
-
-        // Verificar si ya está asignado
-        for (Enunciado e : conv.getEnunciados()) {
-            if (e.getId() == enunciadoId) {
-                throw new DAOException("El enunciado ya está asignado a esta convocatoria");
-            }
-        }
-
-        // Crear enunciado temporal con solo el ID
-        Enunciado enunciado = new Enunciado();
-        enunciado.setId(enunciadoId);
-        conv.getEnunciados().add(enunciado);
-
-        actualizarConvocatoriaExamen(conv);
-    }
-
-    @Override
-    public void desasignarEnunciadoDeConvocatoria(String convocatoria, int enunciadoId) throws DAOException {
-        ConvocatoriaExamen conv = buscarConvocatoriaPorNombre(convocatoria);
-        if (conv == null) {
-            throw new DAOException("No se encontró la convocatoria: " + convocatoria);
-        }
-
-        boolean eliminado = false;
-        for (int i = 0; i < conv.getEnunciados().size(); i++) {
-            if (conv.getEnunciados().get(i).getId() == enunciadoId) {
-                conv.getEnunciados().remove(i);
-                eliminado = true;
-                break;
-            }
-        }
-
-        if (!eliminado) {
-            throw new DAOException("El enunciado no estaba asignado a esta convocatoria");
-        }
-
-        actualizarConvocatoriaExamen(conv);
-    }
-
-    @Override
-    public List<ConvocatoriaExamen> buscarConvocatoriasPorEnunciado(int enunciadoId) throws DAOException {
-        List<ConvocatoriaExamen> todasConvocatorias = buscarTodasLasConvocatorias();
-        List<ConvocatoriaExamen> resultado = new ArrayList<ConvocatoriaExamen>();
-
-        for (ConvocatoriaExamen conv : todasConvocatorias) {
-            for (Enunciado e : conv.getEnunciados()) {
-                if (e.getId() == enunciadoId) {
-                    resultado.add(conv);
-                    break;
-                }
-            }
-        }
-
-        return resultado;
-    }
-
-    // =================== MÉTODOS AUXILIARES ===================
-    private void guardarTodasLasConvocatorias(List<ConvocatoriaExamen> convocatorias) throws DAOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARCHIVO_CONVOCATORIAS))) {
-            oos.writeObject(convocatorias);
-        } catch (IOException e) {
-            throw new DAOException("Error al guardar archivo de convocatorias: " + e.getMessage(), e);
-        }
-    }
-
-    private UnidadDidactica mapearUnidadDidactica(ResultSet rs) throws SQLException {
-        UnidadDidactica unidad = new UnidadDidactica();
-        unidad.setId(rs.getInt("id"));
-        unidad.setAcronimo(rs.getString("acronimo"));
-        unidad.setTitulo(rs.getString("titulo"));
-        unidad.setEvaluacion(rs.getString("evaluacion"));
-        unidad.setDescripcion(rs.getString("descripcion"));
-        return unidad;
-    }
-
     private Enunciado mapearEnunciado(ResultSet rs) throws SQLException {
         Enunciado enunciado = new Enunciado();
         enunciado.setId(rs.getInt("id"));
@@ -706,57 +236,45 @@ public class DaoimplementMySQL implements Dao {
     }
 
     @Override
-    public void probarConexion() throws DAOException {
+    public Enunciado buscarEnunciadoPorId(int id) throws DAOException {
+        String sql = "SELECT * FROM Enunciado WHERE id = ?";
+
         try {
             openConnection();
-            if (isConnected()) {
-                System.out.println("✅ Conexión DAO Singleton establecida correctamente");
-                System.out.println("📊 Hash de instancia DAO: " + this.hashCode());
-                System.out.println("🔗 URL: " + urlDB);
-                System.out.println("👤 Usuario: " + userBD);
+            stmt = con.prepareStatement(sql);
+            stmt.setInt(1, id);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return mapearEnunciado(rs);
             }
-            closeConnection();
+
         } catch (SQLException e) {
-            throw new DAOException("Error al probar conexión: " + e.getMessage(), e);
+        } finally {
+            try {
+                closeConnection();
+            } catch (SQLException e) {
+                /* ignorar */ }
         }
+        return null;
     }
 
     @Override
-    public void cerrarRecursos() throws DAOException {
-        try {
-            closeConnection();
-            LOGGER.info("Recursos DAO cerrados correctamente");
-        } catch (SQLException e) {
-            throw new DAOException("Error al cerrar recursos: " + e.getMessage(), e);
-        }
-    }
+    public List<UnidadDidactica> mostrarUnidades() throws DAOException {
+        String sql = "select * from unidaddidactica";
+        List<UnidadDidactica> unidades = new ArrayList<>();
 
-    @Override
-    public void crearEnunciado(Enunciado enu) throws DAOException {
-        String sql = "Inster into enunciado values (?, ?, ?,?)";
         try {
             openConnection();
-            stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
 
-            stmt.setString(2, enu.getDescripcion());
-            stmt.setString(3, enu.getNivel().toString());
-            stmt.setBoolean(4, false);
-            stmt.setString(5, enu.getRuta());
-
-            int filasAfectadas = stmt.executeUpdate();
-            if (filasAfectadas == 0) {
-                throw new DAOException("Error al insertar la unidad didáctica");
+            while (rs.next()) {
+                unidades.add(mapearUnidadDidactica(rs));
             }
-
-            // Obtener ID generado
-            ResultSet generatedKeys = stmt.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                enu.setId(generatedKeys.getInt(1));
-            }
-            stmt.setInt(1, enu.getId());
 
         } catch (SQLException e) {
-            throw new DAOException("Error al insertar unidad didáctica: " + e.getMessage(), e);
+            throw new DAOException("Error al buscar enunciados por unidad didáctica: " + e.getMessage(), e);
         } finally {
             try {
                 closeConnection();
@@ -764,44 +282,41 @@ public class DaoimplementMySQL implements Dao {
                 /* ignorar */ }
         }
 
+        return unidades;
     }
 
     @Override
-    public List<UnidadDidactica> mostrarUnidades() {
-        List<UnidadDidactica> uni = new ArrayList<>();
-        String sql = "Select * from unidaddidactica";
+    public int ultimoIdEnu() throws DAOException {
+        String sql = "SELECT max(id) FROM enunciado;";
+        int id = 50;
         try {
             openConnection();
             stmt = con.prepareStatement(sql);
+
             ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                UnidadDidactica unid = new UnidadDidactica();
-                unid.setId(rs.getInt("id"));             
-                unid.setAcronimo(rs.getString("acronimo")); 
-                unid.setTitulo(rs.getString("titulo"));     
-                unid.setEvaluacion(rs.getString("evaluacion"));
-                unid.setDescripcion(rs.getString("descripcion"));
-                
-                uni.add(unid);
+            if (rs.next()) {
+                id = rs.getInt(1);
             }
-        } catch (Exception e) {
+            return id;
+        } catch (SQLException e) {
+
+        } finally {
+            try {
+                closeConnection();
+            } catch (SQLException e) {
+                /* ignorar */ }
         }
-
-        return uni;
-
+        return id;
     }
 
-    @Override
-    public void crearUniEnu(int id, int id0) {
-        String sql = "Inster into unienu values (?, ?)";
-         try {
-            openConnection();
-            stmt = con.prepareStatement(sql);
-            stmt.setInt(1, id);
-            stmt.setInt(2, id0);
-            
-        } catch (Exception e) {
-        }
+    private UnidadDidactica mapearUnidadDidactica(ResultSet rs) throws SQLException {
+        UnidadDidactica unidad = new UnidadDidactica();
+        unidad.setId(rs.getInt("id"));
+        unidad.setAcronimo(rs.getString("acronimo"));
+        unidad.setTitulo(rs.getString("titulo"));
+        unidad.setEvaluacion(rs.getString("evaluacion"));
+        unidad.setDescripcion(rs.getString("descripcion"));
+        return unidad;
     }
 
 }
