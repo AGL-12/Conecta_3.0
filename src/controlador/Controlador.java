@@ -262,12 +262,20 @@ public class Controlador {
             daoDB.crearUniEnu(id, ultimoId);
             // asociar enunciado a convocatoria
             mostrarTodasConvocatorias();
-            String nombreCon = Utilidades.introducirCadena("Introduce el nombre de la convocatoria que desea");
             List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
+            ConvocatoriaExamen convocatoriaSeleccionada = null;
+            while (convocatoriaSeleccionada == null) {
+                String nombreCon = Utilidades.introducirCadena("Introduce el nombre de la convocatoria que desea: ");
 
-            for (ConvocatoriaExamen conv : convocatorias) {
-                if (conv.getConvocatoria().equalsIgnoreCase(nombreCon)) {
-                    conv.setIdEnunciado(enu.getId());
+                for (ConvocatoriaExamen conv : convocatorias) {
+                    if (conv.getConvocatoria().equalsIgnoreCase(nombreCon)) {
+                        convocatoriaSeleccionada = conv;
+                        break;
+                    }
+                }
+
+                if (convocatoriaSeleccionada == null) {
+                    System.out.println("❌ No existe ninguna convocatoria con ese nombre. Intenta de nuevo.");
                 }
             }
             guardarConvocatorias(convocatorias);
@@ -286,15 +294,10 @@ public class Controlador {
         try {
             List<UnidadDidactica> uni = daoDB.mostrarUnidades();
             int unidadId = selectIdUnidadDidactica(uni);
-            enunciados = daoDB.buscarEnunciadosPorUnidad(unidadId);
-            if (enunciados != null) {
+            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(unidadId);
+            if (!enunciados.isEmpty() && enunciados != null) {
                 for (Enunciado e : enunciados) {
-                    System.out.println("ID: " + e.getId());
-                    System.out.println("Descripción: " + e.getDescripcion());
-                    System.out.println("Nivel: " + e.getNivel());
-                    System.out.println("Disponible: " + (e.isDisponible() ? "Sí" : "No"));
-                    System.out.println("Ruta: " + e.getRuta());
-                    System.out.println("----------------------------");
+                    System.out.println(e);
                 }
             } else {
                 System.out.println("No hay enunciado asignados a la convocatoria: " + unidadId);
@@ -422,12 +425,7 @@ public class Controlador {
             listaEnunciados = daoDB.mostrarEnunciados();
             System.out.println("\n--- TODAS LOS ENUNCIADOS ---");
             for (Enunciado e : listaEnunciados) {
-                System.out.println("ID: " + e.getId());
-                System.out.println("Descripción: " + e.getDescripcion());
-                System.out.println("Nivel: " + e.getNivel());
-                System.out.println("Disponible: " + (e.isDisponible() ? "Sí" : "No"));
-                System.out.println("Ruta: " + e.getRuta());
-                System.out.println("----------------------------");
+                System.out.println(e);
             }
             boolean idValido;
 
@@ -488,10 +486,10 @@ public class Controlador {
 
         List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
         boolean encontrada = false;
-
+        System.out.println("\n📝 Convocatoria de Examen\n");
         for (ConvocatoriaExamen c : convocatorias) {
             if (c.getIdEnunciado() == id) {
-                System.out.println(c); // usa el toString() de ConvocatoriaExamen
+                System.out.println(c);
                 encontrada = true;
             }
         }

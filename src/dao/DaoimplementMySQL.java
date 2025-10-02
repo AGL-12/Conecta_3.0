@@ -180,11 +180,6 @@ public class DaoimplementMySQL implements Dao {
     }
 
     @Override
-    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId) throws DAOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int unidadDidacticaId) throws DAOException {
         String sql = "SELECT e.*FROM enunciado e JOIN uniEnu ue ON e.id = ue.id_enu WHERE ue.id_uni = ?";
 

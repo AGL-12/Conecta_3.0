@@ -23,8 +23,6 @@ public interface Dao {
 
     public List<UnidadDidactica> mostrarUnidades() throws DAOException;
 
-    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId) throws DAOException;
-
     public void insertarUnidadDidactica(UnidadDidactica unidad) throws DAOException;
 
     public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int id) throws DAOException;

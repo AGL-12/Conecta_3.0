@@ -7,8 +7,6 @@ package modelo;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -80,12 +78,12 @@ public class ConvocatoriaExamen implements Serializable {
 
     @Override
     public String toString() {
-        return "ConvocatoriaExamen{"
-                + "convocatoria='" + convocatoria + '\''
-                + ", descripcion='" + descripcion + '\''
-                + ", fecha=" + fecha
-                + ", curso='" + curso + '\''
-                + '}';
+        return "Convocatoria: " + convocatoria + "\n"
+                + "Descripción : " + descripcion + "\n"
+                + "Fecha       : " + fecha + "\n"
+                + "Curso       : " + curso + "\n"
+                + "ID Enunciado: " + (idEnunciado > 0 ? idEnunciado : "No asignado") + "\n"
+                + "----------------------------";
     }
 
 }
