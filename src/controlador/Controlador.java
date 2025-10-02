@@ -121,7 +121,7 @@ public class Controlador {
     private ConvocatoriaExamen buscarConvocatoriaPorNombre(String nombre) {
         List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
         for (ConvocatoriaExamen c : convocatorias) {
-            if (c.getConvocatoria().equals(nombre)) {
+            if (c.getConvocatoria().equalsIgnoreCase(nombre)) {
                 return c;
             }
         }
@@ -152,7 +152,7 @@ public class Controlador {
                     consultarEnunciadosPorUnidad();
                     break;
                 case 5:
-                    consultarEnunciadosPorUnidad();
+                    consultarConvocatoriasPorEnunciado();
                     break;
                 case 6:
                     visualizarTextoAsociado();
@@ -210,7 +210,7 @@ public class Controlador {
                         System.out.println("⚠️ Opción inválida.");
                         break;
                 }
-            } while (option <= 1 || option >= 3);
+            } while (option < 1 || option > 3);
 
             String descripcion = Utilidades.leerString("Descripcion: ");
 
@@ -293,7 +293,7 @@ public class Controlador {
         try {
             int unidadId = Utilidades.leerInt("ID de la unidad: ");
 
-            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(id);
+            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(unidadId);
             System.out.println(enunciados);
 
         } catch (DAOException e) {
@@ -343,10 +343,7 @@ public class Controlador {
         } else {
             for (int i = 0; i < convocatorias.size(); i++) {
                 ConvocatoriaExamen c = convocatorias.get(i);
-                System.out.println((i + 1) + ". " + c.getConvocatoria());
-                System.out.println("   Fecha: " + c.getFecha());
-                System.out.println("   Curso: " + c.getCurso());
-                System.out.println("   Enunciados asignados: " + c.getIdEnunciado());
+                System.out.println((i + 1) + ". " + convocatorias.get(i));
             }
         }
     }
@@ -355,29 +352,44 @@ public class Controlador {
         int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar");
 
         try {
-            // Obtener el enunciado desde la base de datos
             Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
 
             if (enunciado == null) {
-                System.out.println("No se encontró ningún enunciado con ese ID.");
+                System.out.println("❌ No se encontró ningún enunciado con ese ID.");
                 return;
             }
 
             String rutaArchivo = enunciado.getRuta();
+
+            // Validar que hay ruta
+            if (rutaArchivo == null || rutaArchivo.trim().isEmpty()) {
+                System.out.println("❌ Este enunciado no tiene archivo asociado.");
+                return;
+            }
+
             File archivo = new File(rutaArchivo);
 
             if (!archivo.exists()) {
-                System.out.println("El archivo de texto asociado no existe: " + rutaArchivo);
+                System.out.println("❌ El archivo no existe: " + rutaArchivo);
                 return;
-            } else {
-                Desktop desktop = Desktop.getDesktop();
-                desktop.open(archivo);
             }
 
+            // Validar Desktop
+            if (!Desktop.isDesktopSupported()) {
+                System.out.println("❌ La apertura de archivos no está soportada en este sistema.");
+                System.out.println("   Ruta del archivo: " + archivo.getAbsolutePath());
+                return;
+            }
+
+            Desktop desktop = Desktop.getDesktop();
+            desktop.open(archivo);
+            System.out.println("✅ Abriendo archivo: " + archivo.getName());
+
         } catch (DAOException e) {
-            System.out.println("Error al buscar el enunciado: " + e.getMessage());
-        } catch (IOException ex) {
-            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("❌ Error al buscar el enunciado: " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("❌ Error al abrir el archivo: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -444,4 +456,24 @@ public class Controlador {
             }
         }
     }
+
+    private void consultarConvocatoriasPorEnunciado() {
+        System.out.println("\n--- CONSULTAR CONVOCATORIAS POR ENUNCIADO ---");
+        int id = Utilidades.leerInt("Introduce el ID del enunciado: ");
+
+        List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
+        boolean encontrada = false;
+
+        for (ConvocatoriaExamen c : convocatorias) {
+            if (c.getIdEnunciado() == id) {
+                System.out.println(c); // usa el toString() de ConvocatoriaExamen
+                encontrada = true;
+            }
+        }
+
+        if (!encontrada) {
+            System.out.println("⚠️ No hay convocatorias asociadas al enunciado con ID " + id);
+        }
+    }
+
 }

@@ -6,14 +6,7 @@
 package dao;
 
 import java.util.logging.Logger;
-import java.util.logging.Level;
 import excepciones.DAOException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -147,13 +140,13 @@ public class DaoimplementMySQL implements Dao {
     // =================== ENUNCIADO ===================
     @Override
     public void crearUniEnu(int id, int id0) throws DAOException {
-        String sql = "insert into enunciadounidaddidactica values (?, ?)";
+        String sql = "INSERT INTO enunciadounidaddidactica (unidad_didactica_id, enunciado_id) VALUES (?, ?)";
         try {
             openConnection();
             stmt = con.prepareStatement(sql);
             stmt.setInt(1, id);
             stmt.setInt(2, id0);
-
+            stmt.executeUpdate();
         } catch (Exception e) {
         }
     }
@@ -198,7 +191,10 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int unidadDidacticaId) throws DAOException {
-        String sql = "SELECT * FROM enunciado WHERE id IN (SELECT ide FROM unienu WHERE idu = ?);";
+        String sql = "SELECT e.* \n"
+                + "FROM Enunciado e\n"
+                + "JOIN EnunciadoUnidadDidactica eu ON e.id = eu.enunciado_id\n"
+                + "WHERE eu.unidad_didactica_id = ?";
 
         List<Enunciado> enunciados = new ArrayList<Enunciado>();
 
@@ -228,7 +224,7 @@ public class DaoimplementMySQL implements Dao {
         Enunciado enunciado = new Enunciado();
         enunciado.setId(rs.getInt("id"));
         enunciado.setDescripcion(rs.getString("descripcion"));
-        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel")));
+        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel_dificultad")));
         enunciado.setDisponible(rs.getBoolean("disponible"));
         enunciado.setRuta(rs.getString("ruta"));
         return enunciado;
@@ -287,7 +283,7 @@ public class DaoimplementMySQL implements Dao {
     @Override
     public int ultimoIdEnu() throws DAOException {
         String sql = "SELECT max(id) FROM enunciado;";
-        int id = 50;
+        int id = 0;
         try {
             openConnection();
             stmt = con.prepareStatement(sql);
