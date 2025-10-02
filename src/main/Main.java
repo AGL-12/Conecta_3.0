@@ -14,7 +14,6 @@ public class Main {
         // Obtener instancia Singleton del Controlador
         Controlador controlador = Controlador.getInstance();
         
-        // Iniciar aplicación
         controlador.iniciar();
     }
 }
