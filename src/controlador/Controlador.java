@@ -4,8 +4,10 @@ import dao.Dao;
 import dao.DaoimplementMySQL;
 import modelo.*;
 import excepciones.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,6 +16,8 @@ import utilidades.Utilidades;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Controlador principal con patrón Singleton Gestiona el menú y coordina DaoDB
@@ -68,11 +72,11 @@ public class Controlador {
         if (!archivo.exists()) {
             System.out.println("Creando archivo convocatorias.dat con datos iniciales...");
             List<ConvocatoriaExamen> precarga = new ArrayList<ConvocatoriaExamen>();
-
+            //enunciado
             // Precarga de ejemplo
-            precarga.add(new ConvocatoriaExamen("Ordinaria_2024", "Primera convocatoria ordinaria",
+            precarga.add(new ConvocatoriaExamen(1, "Ordinaria_2024", "Primera convocatoria ordinaria",
                     LocalDate.of(2024, 6, 15), "2023/2024"));
-            precarga.add(new ConvocatoriaExamen("Extraordinaria_2024", "Convocatoria extraordinaria",
+            precarga.add(new ConvocatoriaExamen(2, "Extraordinaria_2024", "Convocatoria extraordinaria",
                     LocalDate.of(2024, 9, 10), "2023/2024"));
 
             guardarConvocatorias(precarga);
@@ -103,25 +107,11 @@ public class Controlador {
      */
     private void guardarConvocatorias(List<ConvocatoriaExamen> convocatorias) {
         File archivoOriginal = new File(ARCHIVO_CONVOCATORIAS);
-        File archivoTemporal = new File(ARCHIVO_CONVOCATORIAS + ".tmp");
 
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivoTemporal))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivoOriginal))) {
             oos.writeObject(convocatorias);
-
-            // Si existe el original, borrarlo
-            if (archivoOriginal.exists()) {
-                archivoOriginal.delete();
-            }
-
-            // Renombrar temporal a original
-            archivoTemporal.renameTo(archivoOriginal);
-
         } catch (IOException e) {
             System.err.println("Error al guardar convocatorias: " + e.getMessage());
-            // Si falla, intentar borrar temporal
-            if (archivoTemporal.exists()) {
-                archivoTemporal.delete();
-            }
         }
     }
 
@@ -162,16 +152,13 @@ public class Controlador {
                     consultarEnunciadosPorUnidad();
                     break;
                 case 5:
-                    consultarConvocatoriasPorEnunciado();
+                    consultarEnunciadosPorUnidad();
                     break;
                 case 6:
                     visualizarTextoAsociado();
                     break;
                 case 7:
                     asignarEnunciadoConvocatoria();
-                    break;
-                case 8:
-                    mostrarEstadoSingleton();
                     break;
                 case 0:
                     System.out.println("👋 Saliendo del programa...");
@@ -196,18 +183,35 @@ public class Controlador {
         System.out.println("5. 📅  Consultar Convocatorias por Enunciado");
         System.out.println("6. 👁️  Visualizar texto asociado a un Enunciado");
         System.out.println("7. ➡️ Asignar Enunciado a Convocatoria");
-        System.out.println("8. 🔧 Mostrar Estado Singleton (Demo)");
         System.out.println("0. Salir");
         System.out.println(Utilidades.repetir("=", 50));
     }
 
     private void crearUnidadDidactica() {
+        int option;
+        String evaluacion = null;
         System.out.println("\n--- CREAR UNIDAD DIDACTICA ---");
 
         try {
             String acronimo = Utilidades.leerString("Acronimo: ");
             String titulo = Utilidades.leerString("Titulo: ");
-            String evaluacion = Utilidades.leerString("Evaluacion (Continua/Final/Mixta): ");
+            do {
+                switch (option = Utilidades.leerInt("Elige una Evaluacion (1.Continua/2.Final/3.Mixta) ")) {
+                    case 1:
+                        evaluacion = "continua";
+                        break;
+                    case 2:
+                        evaluacion = "Final";
+                        break;
+                    case 3:
+                        evaluacion = "Mixta";
+                        break;
+                    default:
+                        System.out.println("⚠️ Opción inválida.");
+                        break;
+                }
+            } while (option <= 1 || option >= 3);
+
             String descripcion = Utilidades.leerString("Descripcion: ");
 
             UnidadDidactica unidad = new UnidadDidactica(acronimo, titulo, evaluacion, descripcion);
@@ -221,7 +225,7 @@ public class Controlador {
     }
 
     private void crearEnunciado() {
-        System.out.println("\n--- CREAR ENUNCIADO ---");
+        System.out.println("\n--- 📝 CREAR ENUNCIADO  ---");
 
         try {
             String descripcion = Utilidades.leerString("Descripcion: ");
@@ -240,55 +244,40 @@ public class Controlador {
                     nivel = Dificultad.ALTA;
                     break;
                 default:
+                    System.out.println("⚠️ Opción inválida, se seleccionará MEDIA por defecto");
                     nivel = Dificultad.MEDIA;
                     break;
             }
 
-            String ruta = Utilidades.leerString("Ruta documento (opcional): ");
+            String ruta = Utilidades.leerString("Ruta documento");
             if (ruta.trim().isEmpty()) {
                 ruta = null;
             }
 
-            // Mostrar unidades disponibles
-            List<UnidadDidactica> unidades = daoDB.obtenerTodasUnidades();
-            if (unidades.isEmpty()) {
-                System.out.println("No hay unidades didacticas. Cree primero una unidad.");
-                return;
-            }
-
-            System.out.println("\nUnidades disponibles:");
-            for (int i = 0; i < unidades.size(); i++) {
-                System.out.println((i + 1) + ". " + unidades.get(i).getAcronimo() + " - " + unidades.get(i).getTitulo());
-            }
-
-            String seleccion = Utilidades.leerString("Seleccione unidades (ej: 1,3): ");
-            List<Integer> unidadesIds = new ArrayList<Integer>();
-
-            String[] indices = seleccion.split(",");
-            for (String idx : indices) {
-                try {
-                    int i = Integer.parseInt(idx.trim()) - 1;
-                    if (i >= 0 && i < unidades.size()) {
-                        unidadesIds.add(unidades.get(i).getId());
-                    }
-                } catch (NumberFormatException e) {
-                    // ignorar indices invalidos
-                }
-            }
-
-            if (unidadesIds.isEmpty()) {
-                System.out.println("Debe seleccionar al menos una unidad.");
-                return;
-            }
-
             // Crear enunciado
-            Enunciado enunciado = new Enunciado(descripcion, nivel, ruta);
-            daoDB.insertarEnunciado(enunciado);
+            Enunciado enu = new Enunciado(descripcion, nivel, ruta);
+            daoDB.crearEnunciado(enu);
 
             // Asociar con unidades
-            for (Integer unidadId : unidadesIds) {
-                daoDB.asociarEnunciadoUnidad(enunciado.getId(), unidadId);
+            List<UnidadDidactica> uni = daoDB.mostrarUnidades();
+            System.out.println("\n📚 Unidades Didácticas disponibles:");
+            for (UnidadDidactica u : uni) {
+                System.out.println("ID: " + u.getId() + " Nombre:" + u.getTitulo());
             }
+            int id = Utilidades.leerInt("Introduce el id de la unidad didactica: ");
+            int ultimoId = daoDB.ultimoIdEnu();
+            daoDB.crearUniEnu(id, ultimoId);
+            // asociar enunciado a convocatoria
+            mostrarTodasConvocatorias();
+            String nombreCon = Utilidades.introducirCadena("Introduce el nombre de la convocatoria que desea");
+            List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
+
+            for (ConvocatoriaExamen conv : convocatorias) {
+                if (conv.getConvocatoria().equalsIgnoreCase(nombreCon)) {
+                    conv.setIdEnunciado(enu.getId());
+                }
+            }
+            guardarConvocatorias(convocatorias);
 
             System.out.println("Enunciado creado exitosamente!");
 
@@ -299,32 +288,17 @@ public class Controlador {
 
     private void consultarEnunciadosPorUnidad() {
         System.out.println("\n--- CONSULTAR ENUNCIADOS POR UNIDAD ---");
-
+        List<Enunciado> enunciados;
+        int id = Utilidades.leerInt("Introduce el id del enunciado");
         try {
             int unidadId = Utilidades.leerInt("ID de la unidad: ");
 
-            List<Enunciado> enunciados = daoDB.buscarEnunciadosPorUnidad(unidadId);
-
-            if (enunciados.isEmpty()) {
-                System.out.println("No hay enunciados para esta unidad.");
-            } else {
-                System.out.println("\nEnunciados encontrados:");
-                for (Enunciado e : enunciados) {
-                    System.out.println("- [" + e.getNivel() + "] " + e.getDescripcion());
-                }
-            }
+            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(id);
+            System.out.println(enunciados);
 
         } catch (DAOException e) {
             System.err.println("Error: " + e.getMessage());
         }
-    }
-
-    private void visualizarTextoAsociado() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    private void mostrarEstadoSingleton() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     private void crearConvocatoria() {
@@ -360,106 +334,6 @@ public class Controlador {
         }
     }
 
-    private void consultarConvocatoriasPorEnunciado() {
-        System.out.println("\n--- CONSULTAR CONVOCATORIAS POR ENUNCIADO ---");
-
-        try {
-            int enunciadoId = Utilidades.leerInt("ID del enunciado: ");
-
-            List<ConvocatoriaExamen> todasConvocatorias = leerConvocatorias();
-            List<ConvocatoriaExamen> resultado = new ArrayList<ConvocatoriaExamen>();
-
-            // Buscar convocatorias que contienen el enunciado
-            for (ConvocatoriaExamen conv : todasConvocatorias) {
-                for (Enunciado e : conv.getEnunciados()) {
-                    if (e.getId() == enunciadoId) {
-                        resultado.add(conv);
-                        break;
-                    }
-                }
-            }
-
-            if (resultado.isEmpty()) {
-                System.out.println("No hay convocatorias para este enunciado.");
-            } else {
-                System.out.println("\nConvocatorias encontradas:");
-                for (ConvocatoriaExamen c : resultado) {
-                    System.out.println("- " + c.getConvocatoria() + " (" + c.getFecha() + ")");
-                }
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void asignarEnunciadoConvocatoria() {
-        System.out.println("\n--- ASIGNAR ENUNCIADO A CONVOCATORIA ---");
-
-        try {
-            // Mostrar enunciados disponibles
-            List<Enunciado> enunciados = daoDB.obtenerTodosEnunciados();
-            if (enunciados.isEmpty()) {
-                System.out.println("No hay enunciados disponibles.");
-                return;
-            }
-
-            System.out.println("\nEnunciados disponibles:");
-            for (Enunciado e : enunciados) {
-                System.out.println("ID: " + e.getId() + " - [" + e.getNivel() + "] " + e.getDescripcion());
-            }
-
-            int enunciadoId = Utilidades.leerInt("\nID del enunciado a asignar: ");
-
-            // Mostrar convocatorias disponibles
-            mostrarTodasConvocatorias();
-
-            String nombreConv = Utilidades.leerString("\nNombre de la convocatoria: ");
-
-            // Leer convocatorias y buscar
-            List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
-            boolean encontrada = false;
-
-            for (ConvocatoriaExamen conv : convocatorias) {
-                if (conv.getConvocatoria().equals(nombreConv)) {
-                    encontrada = true;
-
-                    // Verificar si ya está asignado
-                    boolean yaAsignado = false;
-                    for (Enunciado e : conv.getEnunciados()) {
-                        if (e.getId() == enunciadoId) {
-                            yaAsignado = true;
-                            break;
-                        }
-                    }
-
-                    if (yaAsignado) {
-                        System.err.println("El enunciado ya esta asignado a esta convocatoria.");
-                        return;
-                    }
-
-                    // Crear enunciado temporal con solo el ID
-                    Enunciado enunciado = new Enunciado();
-                    enunciado.setId(enunciadoId);
-                    conv.getEnunciados().add(enunciado);
-
-                    break;
-                }
-            }
-
-            if (!encontrada) {
-                System.err.println("No se encontro la convocatoria.");
-                return;
-            }
-
-            guardarConvocatorias(convocatorias);
-            System.out.println("Enunciado asignado exitosamente!");
-
-        } catch (DAOException e) {
-            System.err.println("Error: " + e.getMessage());
-        }
-    }
-
     private void mostrarTodasConvocatorias() {
         System.out.println("\n--- TODAS LAS CONVOCATORIAS ---");
         List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
@@ -472,16 +346,102 @@ public class Controlador {
                 System.out.println((i + 1) + ". " + c.getConvocatoria());
                 System.out.println("   Fecha: " + c.getFecha());
                 System.out.println("   Curso: " + c.getCurso());
-                System.out.println("   Enunciados asignados: " + c.getEnunciados().size());
+                System.out.println("   Enunciados asignados: " + c.getIdEnunciado());
             }
         }
     }
-    private void cerrarRecursos() {
+
+    private void visualizarTextoAsociado() {
+        int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar");
+
         try {
-            daoDB.cerrarRecursos();
-            System.out.println("Recursos cerrados correctamente.");
+            // Obtener el enunciado desde la base de datos
+            Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
+
+            if (enunciado == null) {
+                System.out.println("No se encontró ningún enunciado con ese ID.");
+                return;
+            }
+
+            String rutaArchivo = enunciado.getRuta();
+            File archivo = new File(rutaArchivo);
+
+            if (!archivo.exists()) {
+                System.out.println("El archivo de texto asociado no existe: " + rutaArchivo);
+                return;
+            } else {
+                Desktop desktop = Desktop.getDesktop();
+                desktop.open(archivo);
+            }
+
         } catch (DAOException e) {
-            System.err.println("Error al cerrar recursos: " + e.getMessage());
+            System.out.println("Error al buscar el enunciado: " + e.getMessage());
+        } catch (IOException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void asignarEnunciadoConvocatoria() {
+
+        ObjectInputStream ois = null;
+        ObjectOutputStream oos = null;
+
+        String nombre;
+        int id;
+        File fichero = new File("src/data/convocatorias.dat");
+        List<ConvocatoriaExamen> convocatorias = new ArrayList<>();
+        ConvocatoriaExamen encontrada = null;
+
+        nombre = Utilidades.introducirCadena("Introduce el nombre de la convocatoria");
+        id = Utilidades.leerInt("Introduce el id que quieras añadir");
+
+        try {
+            ois = new ObjectInputStream(new FileInputStream(fichero));
+            convocatorias = (List<ConvocatoriaExamen>) ois.readObject();
+            try {
+                for (ConvocatoriaExamen c : convocatorias) {
+                    if (c.getConvocatoria().equalsIgnoreCase(nombre)) {
+                        encontrada = c;
+                        break;
+                    }
+                }
+                if (encontrada == null) {
+                    System.out.println("No se encontró la convocatoria: " + nombre);
+                    return;
+                }
+                Enunciado enunciado = daoDB.buscarEnunciadoPorId(id);
+                if (enunciado == null) {
+                    System.out.println("No se encontró el enunciado con ID: " + id);
+                    return;
+                } else {
+                    encontrada.setIdEnunciado(id);
+                }
+
+                oos = new ObjectOutputStream(new FileOutputStream(fichero));
+                oos.writeObject(convocatorias);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (DAOException ex) {
+                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (ois != null) {
+                    ois.close();
+                }
+                if (oos != null) {
+                    oos.close();
+                }
+            } catch (IOException ignored) {
+            }
         }
     }
 }

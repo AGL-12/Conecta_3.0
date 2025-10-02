@@ -15,17 +15,22 @@ import modelo.UnidadDidactica;
  * @author juanm
  */
 public interface Dao {
-    public List<Enunciado> obtenerTodosEnunciados()throws DAOException;
+//throws DAOException;
 
-    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId)throws DAOException;
+    public void crearUniEnu(int id, int id0) throws DAOException;
 
-    public void asociarEnunciadoUnidad(int id, Integer unidadId)throws DAOException;
+    public void crearEnunciado(Enunciado enu) throws DAOException;
 
-    public void insertarEnunciado(Enunciado enunciado)throws DAOException;
+    public List<UnidadDidactica> mostrarUnidades() throws DAOException;
 
-    public List<UnidadDidactica> obtenerTodasUnidades()throws DAOException;
+    public List<Enunciado> buscarEnunciadosPorUnidad(int unidadId) throws DAOException;
 
-    public void insertarUnidadDidactica(UnidadDidactica unidad)throws DAOException;
+    public void insertarUnidadDidactica(UnidadDidactica unidad) throws DAOException;
 
-    public void cerrarRecursos()throws DAOException;
+    public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int id) throws DAOException;
+
+    public Enunciado buscarEnunciadoPorId(int id) throws DAOException;
+
+    public int ultimoIdEnu()throws DAOException;
+
 }
