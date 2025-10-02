@@ -28,7 +28,7 @@ public class UnidadDidactica implements Serializable {
         this.enunciados = new ArrayList<>();
     }
 
-    public UnidadDidactica(Integer id, String acronimo, String titulo, String evaluacion, String descripcion) {
+    public UnidadDidactica(String acronimo, String titulo, String evaluacion, String descripcion) {
         this();
         this.acronimo = acronimo;
         this.titulo = titulo;

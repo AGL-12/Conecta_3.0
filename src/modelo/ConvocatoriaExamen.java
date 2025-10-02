@@ -21,7 +21,14 @@ public class ConvocatoriaExamen implements Serializable {
     private String descripcion;
     private LocalDate fecha;
     private String curso;
-    private List<Enunciado> enunciados;
+
+    public ConvocatoriaExamen(int idEnunciado, String convocatoria, String descripcion, LocalDate fecha, String curso) {
+        this.idEnunciado = idEnunciado;
+        this.convocatoria = convocatoria;
+        this.descripcion = descripcion;
+        this.fecha = fecha;
+        this.curso = curso;
+    }
 
     public ConvocatoriaExamen(String convocatoria, String descripcion, LocalDate fecha, String curso) {
         this.convocatoria = convocatoria;
@@ -69,14 +76,6 @@ public class ConvocatoriaExamen implements Serializable {
 
     public void setCurso(String curso) {
         this.curso = curso;
-    }
-
-    public List<Enunciado> getEnunciados() {
-        return enunciados;
-    }
-
-    public void setEnunciados(List<Enunciado> enunciados) {
-        this.enunciados = enunciados;
     }
 
     @Override

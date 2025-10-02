@@ -30,6 +30,14 @@ public class Enunciado implements Serializable {
         this.disponible = true;
     }
 
+    public Enunciado(int id, String descripcion, Dificultad nivel, boolean disponible, String ruta) {
+        this.id = id;
+        this.descripcion = descripcion;
+        this.nivel = nivel;
+        this.disponible = disponible;
+        this.ruta = ruta;
+    }
+
     public Enunciado(String descripcion, Dificultad nivel, String ruta) {
         this();
         this.descripcion = descripcion;

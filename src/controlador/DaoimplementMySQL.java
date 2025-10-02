@@ -1,4 +1,3 @@
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -6,6 +5,7 @@
  */
 package controlador;
 
+import controlador.Dao;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import excepciones.DAOException;
@@ -161,7 +161,7 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public void crearEnunciado(Enunciado enu) throws DAOException {
-        String sql = "INSERT INTO Enunciado (descripcion, nivel_dificultad, disponible, ruta) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Enunciado (descripcion, nivel, disponible, ruta) VALUES (?, ?, ?, ?)";
 
         try {
             openConnection();
@@ -199,7 +199,7 @@ public class DaoimplementMySQL implements Dao {
 
     @Override
     public List<Enunciado> buscarEnunciadosPorUnidadDidactica(int unidadDidacticaId) throws DAOException {
-        String sql = "SELECT * FROM enunciado WHERE id IN (SELECT ide FROM unienu WHERE idu = ?);";
+        String sql = "SELECT * FROM enunciado WHERE id IN (SELECT id_enu FROM unienu WHERE id_uni = ?);";
 
         List<Enunciado> enunciados = new ArrayList<Enunciado>();
 
@@ -229,7 +229,7 @@ public class DaoimplementMySQL implements Dao {
         Enunciado enunciado = new Enunciado();
         enunciado.setId(rs.getInt("id"));
         enunciado.setDescripcion(rs.getString("descripcion"));
-        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel")));
+        enunciado.setNivel(Dificultad.valueOf(rs.getString("nivel").toUpperCase()));
         enunciado.setDisponible(rs.getBoolean("disponible"));
         enunciado.setRuta(rs.getString("ruta"));
         return enunciado;

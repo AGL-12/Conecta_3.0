@@ -5,6 +5,7 @@ import controlador.DaoimplementMySQL;
 import modelo.*;
 import excepciones.*;
 import java.awt.Desktop;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -152,7 +153,7 @@ public class Controlador {
                     consultarEnunciadosPorUnidad();
                     break;
                 case 5:
-                    consultarEnunciadosPorUnidad();
+                    consultarConvocatoriasPorEnuciado();
                     break;
                 case 6:
                     visualizarTextoAsociado();
@@ -161,7 +162,7 @@ public class Controlador {
                     asignarEnunciadoConvocatoria();
                     break;
                 case 0:
-                    System.out.println("👋 Saliendo del programa...");
+                    mostrarTodasConvocatorias();
                     break;
                 default:
                     System.out.println("❌ Opción inválida. Seleccione una opción válida.");
@@ -210,7 +211,7 @@ public class Controlador {
                         System.out.println("⚠️ Opción inválida.");
                         break;
                 }
-            } while (option <= 1 || option >= 3);
+            } while (option < 1 || option > 3);
 
             String descripcion = Utilidades.leerString("Descripcion: ");
 
@@ -222,7 +223,40 @@ public class Controlador {
         } catch (DAOException e) {
             System.err.println("Error: " + e.getMessage());
         }
-    }
+    } // Funciona Bien
+
+    private void crearConvocatoria() {
+        System.out.println("\n--- CREAR CONVOCATORIA ---");
+
+        try {
+            String nombre = Utilidades.leerString("Nombre convocatoria: ");
+
+            // Verificar si ya existe
+            if (buscarConvocatoriaPorNombre(nombre) != null) {
+                System.err.println("Error: Ya existe una convocatoria con ese nombre.");
+                return;
+            }
+
+            String descripcion = Utilidades.leerString("Descripcion: ");
+            LocalDate fecha = Utilidades.leerFecha("Fecha (yyyy-MM-dd): ");
+            String curso = Utilidades.leerString("Curso: ");
+
+            // Leer lista actual
+            List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
+
+            // Agregar nueva
+            ConvocatoriaExamen nuevaConv = new ConvocatoriaExamen(nombre, descripcion, fecha, curso);
+            convocatorias.add(nuevaConv);
+
+            // Guardar con método temporal
+            guardarConvocatorias(convocatorias);
+
+            System.out.println("Convocatoria creada exitosamente!");
+
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    } // Funciona Bien
 
     private void crearEnunciado() {
         System.out.println("\n--- 📝 CREAR ENUNCIADO  ---");
@@ -249,7 +283,7 @@ public class Controlador {
                     break;
             }
 
-            String ruta = Utilidades.leerString("Ruta documento");
+            String ruta = Utilidades.leerString("Ruta documento: ");
             if (ruta.trim().isEmpty()) {
                 ruta = null;
             }
@@ -284,55 +318,45 @@ public class Controlador {
         } catch (DAOException e) {
             System.err.println("Error: " + e.getMessage());
         }
-    }
+    } // Funciona Bien
 
     private void consultarEnunciadosPorUnidad() {
         System.out.println("\n--- CONSULTAR ENUNCIADOS POR UNIDAD ---");
         List<Enunciado> enunciados;
-        int id = Utilidades.leerInt("Introduce el id del enunciado");
         try {
             int unidadId = Utilidades.leerInt("ID de la unidad: ");
 
-            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(id);
+            enunciados = daoDB.buscarEnunciadosPorUnidadDidactica(unidadId);
             System.out.println(enunciados);
 
         } catch (DAOException e) {
             System.err.println("Error: " + e.getMessage());
         }
-    }
+    } // Funciona Bien Falta Modificar Sysos
 
-    private void crearConvocatoria() {
-        System.out.println("\n--- CREAR CONVOCATORIA ---");
+    private void consultarConvocatoriasPorEnuciado() {
+        int id = Utilidades.leerInt("Introduce el id del enunciado: ");
+        File file = new File(ARCHIVO_CONVOCATORIAS);
 
-        try {
-            String nombre = Utilidades.leerString("Nombre convocatoria: ");
-
-            // Verificar si ya existe
-            if (buscarConvocatoriaPorNombre(nombre) != null) {
-                System.err.println("Error: Ya existe una convocatoria con ese nombre.");
-                return;
-            }
-
-            String descripcion = Utilidades.leerString("Descripcion: ");
-            LocalDate fecha = Utilidades.leerFecha("Fecha (yyyy-MM-dd): ");
-            String curso = Utilidades.leerString("Curso: ");
-
-            // Leer lista actual
-            List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
-
-            // Agregar nueva
-            ConvocatoriaExamen nuevaConv = new ConvocatoriaExamen(nombre, descripcion, fecha, curso);
-            convocatorias.add(nuevaConv);
-
-            // Guardar con método temporal
-            guardarConvocatorias(convocatorias);
-
-            System.out.println("Convocatoria creada exitosamente!");
-
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage());
+        if (!file.exists() || file.length() == 0) {
+            System.out.println("No hay convocatorias guardadas aún.");
+            return;
         }
-    }
+
+        List<ConvocatoriaExamen> convocatorias = leerConvocatorias();
+        boolean encontrada = false;
+
+        for (ConvocatoriaExamen c : convocatorias) {
+            if (c.getIdEnunciado() == id) {
+                System.out.println(c);
+                encontrada = true;
+            }
+        }
+
+        if (!encontrada) {
+            System.out.println("No se encontraron convocatorias para el enunciado con ID " + id);
+        }
+    } // Funciona Bien
 
     private void mostrarTodasConvocatorias() {
         System.out.println("\n--- TODAS LAS CONVOCATORIAS ---");
@@ -352,7 +376,7 @@ public class Controlador {
     }
 
     private void visualizarTextoAsociado() {
-        int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar");
+        int id = Utilidades.leerInt("Introduce el ID del enunciado a visualizar: ");
 
         try {
             // Obtener el enunciado desde la base de datos
@@ -376,10 +400,12 @@ public class Controlador {
 
         } catch (DAOException e) {
             System.out.println("Error al buscar el enunciado: " + e.getMessage());
+
         } catch (IOException ex) {
-            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Controlador.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    } // Funciona Bien
 
     private void asignarEnunciadoConvocatoria() {
 
@@ -392,6 +418,7 @@ public class Controlador {
         List<ConvocatoriaExamen> convocatorias = new ArrayList<>();
         ConvocatoriaExamen encontrada = null;
 
+        mostrarTodasConvocatorias();
         nombre = Utilidades.introducirCadena("Introduce el nombre de la convocatoria");
         id = Utilidades.leerInt("Introduce el id que quieras añadir");
 
@@ -419,19 +446,31 @@ public class Controlador {
 
                 oos = new ObjectOutputStream(new FileOutputStream(fichero));
                 oos.writeObject(convocatorias);
+
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Controlador.class
+                        .getName()).log(Level.SEVERE, null, ex);
+
             } catch (IOException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Controlador.class
+                        .getName()).log(Level.SEVERE, null, ex);
+
             } catch (DAOException ex) {
-                Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Controlador.class
+                        .getName()).log(Level.SEVERE, null, ex);
+
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Controlador.class
+                    .getName()).log(Level.SEVERE, null, ex);
+
         } catch (IOException ex) {
-            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Controlador.class
+                    .getName()).log(Level.SEVERE, null, ex);
+
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Controlador.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Controlador.class
+                    .getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
                 if (ois != null) {
@@ -443,5 +482,6 @@ public class Controlador {
             } catch (IOException ignored) {
             }
         }
-    }
+    } // Funcinan Bien
+
 }
