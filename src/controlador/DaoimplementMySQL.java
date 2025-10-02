@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dao;
+package controlador;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -728,6 +728,79 @@ public class DaoimplementMySQL implements Dao {
             LOGGER.info("Recursos DAO cerrados correctamente");
         } catch (SQLException e) {
             throw new DAOException("Error al cerrar recursos: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void crearEnunciado(Enunciado enu) throws DAOException {
+        String sql = "Inster into enunciado values (?, ?, ?,?)";
+        try {
+            openConnection();
+            stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            stmt.setString(2, enu.getDescripcion());
+            stmt.setString(3, enu.getNivel().toString());
+            stmt.setBoolean(4, false);
+            stmt.setString(5, enu.getRuta());
+
+            int filasAfectadas = stmt.executeUpdate();
+            if (filasAfectadas == 0) {
+                throw new DAOException("Error al insertar la unidad didáctica");
+            }
+
+            // Obtener ID generado
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                enu.setId(generatedKeys.getInt(1));
+            }
+            stmt.setInt(1, enu.getId());
+
+        } catch (SQLException e) {
+            throw new DAOException("Error al insertar unidad didáctica: " + e.getMessage(), e);
+        } finally {
+            try {
+                closeConnection();
+            } catch (SQLException e) {
+                /* ignorar */ }
+        }
+
+    }
+
+    @Override
+    public List<UnidadDidactica> mostrarUnidades() {
+        List<UnidadDidactica> uni = new ArrayList<>();
+        String sql = "Select * from unidaddidactica";
+        try {
+            openConnection();
+            stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                UnidadDidactica unid = new UnidadDidactica();
+                unid.setId(rs.getInt("id"));             
+                unid.setAcronimo(rs.getString("acronimo")); 
+                unid.setTitulo(rs.getString("titulo"));     
+                unid.setEvaluacion(rs.getString("evaluacion"));
+                unid.setDescripcion(rs.getString("descripcion"));
+                
+                uni.add(unid);
+            }
+        } catch (Exception e) {
+        }
+
+        return uni;
+
+    }
+
+    @Override
+    public void crearUniEnu(int id, int id0) {
+        String sql = "Inster into unienu values (?, ?)";
+         try {
+            openConnection();
+            stmt = con.prepareStatement(sql);
+            stmt.setInt(1, id);
+            stmt.setInt(2, id0);
+            
+        } catch (Exception e) {
         }
     }
 

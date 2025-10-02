@@ -1,9 +1,9 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
+// * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package dao;
+package controlador;
 
 import excepciones.DAOException;
 import java.util.List;
@@ -278,4 +278,10 @@ public interface Dao {
     default void deshacerTransaccion() throws DAOException {
         // Implementación por defecto vacía
     }
+
+    public void crearEnunciado(Enunciado enu) throws DAOException;
+
+    public List<UnidadDidactica> mostrarUnidades();
+
+    public void crearUniEnu(int id, int id0);
 }

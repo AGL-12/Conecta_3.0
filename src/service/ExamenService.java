@@ -5,8 +5,8 @@
  */
 package service;
 
-import dao.Dao;
-import dao.DaoimplementMySQL;
+import controlador.Dao;
+import controlador.DaoimplementMySQL;
 import excepciones.DAOException;
 import excepciones.EntityNotFoundException;
 import excepciones.ExamenException;
